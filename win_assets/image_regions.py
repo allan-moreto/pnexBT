@@ -1,0 +1,6 @@
+fight_img_region = (1310, 676, 1358, 702)
+fight_location = (1317, 658, 48, 26)
+run_location = (1457, 709, 45, 26)
+search_screen = (1170, 184, 718, 567)
+elite_region = (1611, 280, 57, 70)
+synch_region = (1263, 350, 20, 19)
