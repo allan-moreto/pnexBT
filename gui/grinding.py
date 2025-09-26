@@ -130,9 +130,9 @@ on_screen = {
 }
 images = {
     "battle_elite": "../win_assets/elite.png",
-    "cancel_request": "../win_assets/request.png",
+    "cancel_request": "../win_assets/handle_request.png",
     "catch_synch": "../win_assets/synch.png",
-    "handle_special": "../win_assets/special.png",
+    "handle_special": "../win_assets/handle_special.png",
     "battle": "../win_assets/battle.png",
     "handle_pm": "../win_assets/handle_pm.png"
 }
