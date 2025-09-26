@@ -181,6 +181,9 @@ def main(page: ft.Page):
             "break_time": random.randint(3, 5) * 60,
             "run_time": random.randint(25, 55) * 60,
         }
+        grinding.append_pokemon(pokemon_list)
+        grinding.reload_images()
+        grinding.start_grinding()
 
         # Run timer_cycle in its own thread
         threading.Thread(
@@ -189,8 +192,7 @@ def main(page: ft.Page):
             daemon=True,
         ).start()
 
-        print("Pokémon list:", pokemon_list)
-        grinding.start_grinding()
+
 
     def stop_handler(e):
         grinding.stop_grinding()
