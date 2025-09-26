@@ -85,25 +85,42 @@ def main(page: ft.Page):
         move_dropdown = ft.Dropdown(
             label="Move",
             options=[ft.dropdown.Option(str(i)) for i in range(1, 5)],
-            width=100,
+            width=150,
         )
         catch_button = ft.ElevatedButton(
-            "Catch: OFF", bgcolor=ft.Colors.GREY_300, color=ft.Colors.BLACK
+            "Catch", width=100
+        )
+        synch_button = ft.ElevatedButton(
+            "Synch", width=100
         )
 
         # Toggle catch button
         def toggle_catch(e):
-            if catch_button.text == "Catch: OFF":
+            if catch_button.text == "Catch":
                 catch_button.text = "Catch: ON"
                 catch_button.bgcolor = ft.Colors.GREEN
                 catch_button.color = ft.Colors.WHITE
             else:
-                catch_button.text = "Catch: OFF"
-                catch_button.bgcolor = ft.Colors.GREY_300
-                catch_button.color = ft.Colors.BLACK
+                catch_button.text = "Catch"
+                catch_button.bgcolor = None
+                catch_button.color = None
+            
+            page.update()
+
+        def toggle_synch(e):
+            if synch_button.text == "Synch":
+                synch_button.text = "Synch: ON"
+                synch_button.bgcolor = ft.Colors.GREEN
+                synch_button.color = ft.Colors.WHITE
+            else:
+                synch_button.text = "Synch"
+                synch_button.bgcolor = None
+                synch_button.color = None
+        
             page.update()
 
         catch_button.on_click = toggle_catch
+        synch_button.on_click = toggle_synch
 
         # Refresh Pokémon display
         def refresh_display():
@@ -141,22 +158,28 @@ def main(page: ft.Page):
             name = pokemon_name.value.strip()
             move = move_dropdown.value
             catch = (catch_button.text == "Catch: ON")
+            synch = (synch_button.text == "Synch: ON")
 
-            if not name or not move:
-                page.snack_bar = ft.SnackBar(ft.Text("Please enter Pokemon name and select a move"))
+            if not name:
+                page.snack_bar = ft.SnackBar(ft.Text("Please enter Pokemon name"))
                 page.snack_bar.open = True
                 page.update()
                 return
 
-            pokemon_entry = {"name": name, "move": move, "catch": catch}
+            pokemon_entry = {"name": name, "move": move, "catch": catch, "synch": synch}
             pokemon_list.append(pokemon_entry)
+            print(pokemon_entry)
 
             # Reset inputs
             pokemon_name.value = ""
             move_dropdown.value = None
-            catch_button.text = "Catch: OFF"
-            catch_button.bgcolor = ft.Colors.GREY_300
-            catch_button.color = ft.Colors.BLACK
+            catch_button.text = "Catch"
+            catch_button.bgcolor = None
+            catch_button.color = None
+            synch_button.text = "Synch"
+            synch_button.bgcolor = None
+            synch_button.color = None
+
             refresh_display()
 
         return ft.Column(
@@ -165,7 +188,7 @@ def main(page: ft.Page):
                 ft.ElevatedButton("Stop Grinding", on_click=stop_handler),
                 *grinding_inputs,
                 ft.Row(
-                    [pokemon_name, move_dropdown, catch_button, ft.ElevatedButton("Add Pokemon", on_click=add_pokemon)],
+                    [pokemon_name, move_dropdown, catch_button, synch_button, ft.ElevatedButton("Add Pokemon", on_click=add_pokemon)],
                     spacing=10,
                 ),
                 pokemon_display_container,

@@ -164,6 +164,9 @@ preloaded_images = {name: Image.open(path[1]) for name, path in on_screen.items(
 def reload_images():
     global preloaded_images
     preloaded_images = {name: Image.open(path[1]) for name, path in on_screen.items()}
+    print(f"catch pokemons: {catch_mons}")
+    print("-----------------------------------------")
+    print(f"on screed: {on_screen}")
 
 def key_press(key):
     kb.press(key)
