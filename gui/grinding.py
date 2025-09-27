@@ -30,9 +30,9 @@ def run():
     key_press("4")
     time.sleep(4)
 
-def catch_synch():
+def catch_pokemom():
     global walking
-    print("cathing a synch pokemon")
+    print("cathing pokemon")
     walking = False
     time.sleep(10)
     walking = True
@@ -197,7 +197,7 @@ def isolate_func(func_name):
     func_name()
     pause_event.set()
 
-def sweep_screen(confidence=0.8):
+def sweep_screen(confidence=0.9):
     screenshot = pyautogui.screenshot(region=(1259, 298, 558, 689))
     # 
     for name, template in preloaded_images.items():
@@ -219,9 +219,18 @@ def watch_screen():
         if on_screen["handle_request"][0]:
             handle_request()
 
-        if any(on_screen.get(pokemon, [False])[0] for pokemon in catch_mons) and catch_synch_bool:
-            catch_synch()
-            continue
+        catch_pokemon = next((pokemon for pokemon in catch_mons if on_screen.get(pokemon, [False])[0]),None)
+        if catch_pokemon and catch_synch_bool == False:
+            catch_pokemom()
+        elif catch_pokemon and catch_synch_bool == True:
+            if on_screen["catch_synch"][0]:
+                catch_pokemom()
+
+        # catch is true if any pokemon in the catch_mons list in on_screen
+        # catch = any(on_screen.get(pokemon, [False])[0] for pokemon in catch_mons)
+        # if catch and catch_synch_bool:
+        #     catch_synch()
+        #     continue
 
         # if catch_synch_bool and on_screen["catch_synch"][0]
 
