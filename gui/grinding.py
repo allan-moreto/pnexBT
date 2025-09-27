@@ -226,14 +226,6 @@ def watch_screen():
             if on_screen["catch_synch"][0]:
                 catch_pokemom()
 
-        # catch is true if any pokemon in the catch_mons list in on_screen
-        # catch = any(on_screen.get(pokemon, [False])[0] for pokemon in catch_mons)
-        # if catch and catch_synch_bool:
-        #     catch_synch()
-        #     continue
-
-        # if catch_synch_bool and on_screen["catch_synch"][0]
-
         if on_screen["battle"][0]:
             walking = False
 
@@ -243,11 +235,6 @@ def watch_screen():
             
             # if battle_elite image is True and battle_elite_bool True, battle elite
             # if battle_elite image is True and battle_elite_bool is False, run from elite
-
-
-
-
-
         else:
             walking = True
         # for name, (is_present, active) in on_screen.items():
