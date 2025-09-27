@@ -8,6 +8,7 @@ WEBHOOK_URL = "https://discord.com/api/webhooks/1419970299063177218/ZKqbHO5hSNrf
 kb = Controller()
 pause_event = threading.Event()
 running = False  # flag
+walking = True
 
 fight_location = (1317, 658, 48, 26)
 run_location = (1457, 709, 45, 26)
@@ -15,13 +16,12 @@ curr_mouse_location = fight_location
 request_path = "../win_assets/request.png"
 elite_path = "../win_assets/elite.png"
 elite_region = (1611, 280, 57, 70)
-cancel_request_location = (1526, 595, 68, 25)
+handle_request_location = (1526, 595, 68, 25)
 alarm_active = True
 move_num = "1"
-run_time = 0
-break_time = 0
-session_time = 0
-print(session_time)
+catch_synch_bool = True
+battle_elite_bool = False
+use_sweeper_bool = False
 
 def run():
     print("running away from ELITE")
@@ -31,12 +31,30 @@ def run():
     key_press("4")
     time.sleep(4)
 
-def catch_synch():
-    print("cathing a synch pokemon")
+def catch_pokemon():
+    global walking
+    print("catching pokemon")
+    walking = False
+    time.sleep(10)
+    walking = True
+    # while loop that throws some balls until battle image has dissapeared,
+    # should throw balls, use potions, use false swipe, do a screen_sweep
+    # after thrown ball and time.sleep
 
 
 def battle_elite():
+    global walking
+    walking = False
     print("battling elite")
+    time.sleep(10) 
+    walking = True
+
+def sweeper_battle():
+    global walking
+    walking = False
+    print("battling with sweeper")
+    time.sleep(10) 
+    walking = True
 
 def handle_special():
     global running
@@ -66,21 +84,22 @@ def send_message(message):
     pause_event.set()
     start_grinding()
 
-def cancel_request():
+def handle_request():
     if alarm_active: winsound.Beep(1000, 3000)
     pause_event.clear()
     filename = take_screenshot((1315, 462, 291, 117))
     send_discord_alert("you've got a player request!", filename)
     time.sleep(2)
-    click(cancel_request_location)
+    click(handle_request_location)
     time.sleep(random.randint(4, 6))
     pause_event.set()
 
 def battle(move_num):
-    time.sleep(3)
+    time.sleep(0.3)
     key_press("1")
     time.sleep(0.1)
     key_press(move_num)
+    time.sleep(3)
 
 def send_discord_alert(text, filename=None):
     payload = {"content": text}
@@ -119,20 +138,25 @@ def handle_pm():
 
 
 on_screen = {
-    "battle_elite": [False, False], #True attack False runs
-    "cancel_request": [False, True], # Always True
-    "catch_synch": [False, False], # False attacks, True catches
-    "handle_special": [False, True], #Always True
-    "handle_pm": [False, True], # Always True
-    "battle": [False, True], # Always true 
+    "battle": [False, "../win_assets/battle.png"],
+    "battle_elite": [False, "../win_assets/elite.png"], 
+    "handle_request": [False, "../win_assets/handle_request.png"], 
+    "catch_synch": [False, "../win_assets/synch.png"], 
+    "handle_special": [False, "../win_assets/handle_special.png"],
+    "handle_pm": [False, "../win_assets/handle_pm.png"],
+    "golem": [False, "../win_assets/golem.png"],
+    "magnemite": [False, "../win_assets/magnemite.png"],
+    "sandslash": [False, "../win_assets/sandslash.png"],
+    "magcargo": [False, "../win_assets/magcargo.png"],
+    
     
     # maybe set keys for catch_pokeName and run_pokeName then if key.contains catch or run do something
 }
 images = {
     "battle_elite": "../win_assets/elite.png",
-    "cancel_request": "../win_assets/handle_request.png",
+    "cancel_request": "../win_assets/request.png",
     "catch_synch": "../win_assets/synch.png",
-    "handle_special": "../win_assets/handle_special.png",
+    "handle_special": "../win_assets/special.png",
     "battle": "../win_assets/battle.png",
     "handle_pm": "../win_assets/handle_pm.png"
 }
@@ -148,59 +172,95 @@ move_map = {}
 
 preloaded_templates = {name: Image.open(path) for name, path in images.items()}
 
-def sweep_screen(confidence=0.8):
-    screenshot = pyautogui.screenshot(region=(1259, 298, 558, 689))
-
-    for name, template in preloaded_templates.items():
-        location = pyautogui.locate(template, screenshot, confidence=confidence)
-        on_screen[name][0] = bool(location)
+def reload_images():
+    global preloaded_images
+    preloaded_images = {name: Image.open(path[1]) for name, path in on_screen.items()}
 
 def key_press(key):
     kb.press(key)
     time.sleep(0.05)
     kb.release(key)
 
-def attack(move_num): 
-    key_press(move_num)
-    time.sleep(0.1)
-    key_press(move_num)
-    time.sleep(0.8)
-
 def move_left_right():
-    global running
-    while running:
+    global running, walking
+    while running:  # keep thread alive as long as running
         pause_event.wait()
-        kb.press('a')
-        time.sleep(random.uniform(0.3, 0.6))
-        kb.release('a')
 
-        kb.press('d')
-        time.sleep(random.uniform(0.3, 0.6))
-        kb.release('d')
+        if not walking:
+            time.sleep(0.1)  # avoid busy-wait
+            continue
+
+        # Randomly choose starting direction
+        directions = ['a', 'd']
+        if random.random() < 0.5:
+            directions.reverse()  # 50% chance to swap order
+
+        for key in directions:
+            kb.press(key)
+            time.sleep(random.uniform(0.3, 0.6))
+            kb.release(key)
 
 def isolate_func(func_name):
     pause_event.clear()
     func_name()
     pause_event.set()
+
+def sweep_screen(confidence=0.9):
+    screenshot = pyautogui.screenshot(region=(1263, 302, 537, 689)) 
+    for name, template in preloaded_images.items():
+        location = pyautogui.locate(template, screenshot, confidence=confidence)
+        on_screen[name][0] = bool(location)
     
 def watch_screen():
-    global running
+    global running, walking
     while running:
         pause_event.wait()
 
         # Update on_screen with latest results
         sweep_screen()
 
-        for name, (is_present, active) in on_screen.items():
-            if not is_present:
-                continue  # skip if nothing found
+        if on_screen["handle_pm"][0]:
+            handle_pm()
+        if on_screen["handle_special"][0]:
+            handle_special()
+        if on_screen["handle_request"][0]:
+            handle_request()
 
-            if active:
-                isolate_func(func_map[name])
-            elif name == "catch_synch":
-                continue  # skip this one explicitly
+        if on_screen["battle_elite"][0] and battle_elite_bool:
+            battle_elite()
+        elif on_screen["battle_elite"][0] and not battle_elite_bool:
+            run()
+
+        catch_mon = next((pokemon for pokemon in catch_mons if on_screen.get(pokemon, [False])[0]),None)
+        if catch_mon and not catch_synch_bool:
+            catch_pokemon()
+            continue
+        elif catch_mon and catch_synch_bool:
+            if on_screen["catch_synch"][0]:
+                catch_pokemon()
+                continue
+        
+        current_pokemon = next((pokemon for pokemon in dinamic_pokemon if on_screen.get(pokemon, [False])[0]),None)
+        if current_pokemon == None:
+            time.sleep(0.1)
+            sweep_screen()
+            current_pokemon = next((pokemon for pokemon in dinamic_pokemon if on_screen.get(pokemon, [False])[0]),None)
+
+        move_num = move_map[current_pokemon]
+
+        if on_screen["battle"][0]:
+            walking = False
+            if not use_sweeper_bool:
+                while on_screen["battle"][0]:
+                    print(f"cuurent pokemon is: {current_pokemon}")
+                    print(f"dimanic pokemons list: {dinamic_pokemon}")
+                    battle(move_num)
+                    sweep_screen()
             else:
-                isolate_func(run)     
+                sweeper_battle()
+        else:
+            walking = True
+        time.sleep(0.2)
 
 def click(region):
     x = region[0] + region[2] // 2

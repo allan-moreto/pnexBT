@@ -4,7 +4,7 @@ import time
 time.sleep(4)
 
 # Path to your own sprite image
-my_sprite_path = ("../win_assets/chat_region.png")
+my_sprite_path = ("../win_assets/fight.png")
 
 # Locate your sprite on the screen
 sprite_location = pyautogui.locateOnScreen(my_sprite_path, confidence=0.9)
