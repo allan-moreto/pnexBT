@@ -21,6 +21,7 @@ alarm_active = True
 move_num = "1"
 catch_synch_bool = True
 battle_elite_bool = False
+use_sweeper_bool = False
 
 def run():
     print("running away from ELITE")
@@ -30,9 +31,9 @@ def run():
     key_press("4")
     time.sleep(4)
 
-def catch_pokemom():
+def catch_pokemon():
     global walking
-    print("cathing pokemon")
+    print("catching pokemon")
     walking = False
     time.sleep(10)
     walking = True
@@ -42,7 +43,18 @@ def catch_pokemom():
 
 
 def battle_elite():
+    global walking
+    walking = False
     print("battling elite")
+    time.sleep(10) 
+    walking = True
+
+def sweeper_battle():
+    global walking
+    walking = False
+    print("battling with sweeper")
+    time.sleep(10) 
+    walking = True
 
 def handle_special():
     global running
@@ -83,10 +95,11 @@ def handle_request():
     pause_event.set()
 
 def battle(move_num):
-    time.sleep(3)
+    time.sleep(0.3)
     key_press("1")
     time.sleep(0.1)
     key_press(move_num)
+    time.sleep(3)
 
 def send_discord_alert(text, filename=None):
     payload = {"content": text}
@@ -131,31 +144,32 @@ on_screen = {
     "catch_synch": [False, "../win_assets/synch.png"], 
     "handle_special": [False, "../win_assets/handle_special.png"],
     "handle_pm": [False, "../win_assets/handle_pm.png"],
+    "golem": [False, "../win_assets/golem.png"],
+    "magnemite": [False, "../win_assets/magnemite.png"],
+    "sandslash": [False, "../win_assets/sandslash.png"],
+    "magcargo": [False, "../win_assets/magcargo.png"],
     
     
     # maybe set keys for catch_pokeName and run_pokeName then if key.contains catch or run do something
 }
 
-move_map = {}
+move_map = {None: "1", "golem": "2", "magnemite": "4", "sandslash": "2", "magcargo": "4"}
 catch_mons = []
 run_mon = []
-dinamic_pokemon = []
+dinamic_pokemon = ["golem", "magnemite", "sandslash", "magcargo"]
 
 def append_pokemon(poke_list):
     for pokemon in poke_list:
         on_screen[pokemon["name"]] = [False, f"../win_assets/{pokemon["name"]}.png"]
-        dinamic_pokemon.append(pokemon["name"])
+        # dinamic_pokemon.append(pokemon["name"])
         if pokemon["catch"] == True:
             catch_mons.append(pokemon["name"])
-        else: 
-            move_map[pokemon["name"]] = pokemon["move"]
-            run_mon.append(pokemon["name"])
-    print(f"catch pokemons: {catch_mons}")
-    print("-----------------------------------------")
-    print(f"on screed: {on_screen}")
+        # else: 
+        #     move_map[pokemon["name"]] = pokemon["move"]
+        #     run_mon.append(pokemon["name"])
     
-    for pokemon, move in move_map.items():
-        print(f"{pokemon} uses attack number {move}")
+    # for pokemon, move in move_map.items():
+    #     print(f"{pokemon} uses attack number {move}")
 
 
 # opens each image from the path provided in image{} and saves it into variable to avoid opening images multiple times
@@ -164,9 +178,6 @@ preloaded_images = {name: Image.open(path[1]) for name, path in on_screen.items(
 def reload_images():
     global preloaded_images
     preloaded_images = {name: Image.open(path[1]) for name, path in on_screen.items()}
-    print(f"catch pokemons: {catch_mons}")
-    print("-----------------------------------------")
-    print(f"on screed: {on_screen}")
 
 def key_press(key):
     kb.press(key)
@@ -198,8 +209,7 @@ def isolate_func(func_name):
     pause_event.set()
 
 def sweep_screen(confidence=0.9):
-    screenshot = pyautogui.screenshot(region=(1259, 298, 558, 689))
-    # 
+    screenshot = pyautogui.screenshot(region=(1263, 302, 537, 689)) 
     for name, template in preloaded_images.items():
         location = pyautogui.locate(template, screenshot, confidence=confidence)
         on_screen[name][0] = bool(location)
@@ -219,35 +229,41 @@ def watch_screen():
         if on_screen["handle_request"][0]:
             handle_request()
 
-        catch_pokemon = next((pokemon for pokemon in catch_mons if on_screen.get(pokemon, [False])[0]),None)
-        if catch_pokemon and catch_synch_bool == False:
-            catch_pokemom()
-        elif catch_pokemon and catch_synch_bool == True:
+        if on_screen["battle_elite"][0] and battle_elite_bool:
+            battle_elite()
+        elif on_screen["battle_elite"][0] and not battle_elite_bool:
+            run()
+
+        catch_mon = next((pokemon for pokemon in catch_mons if on_screen.get(pokemon, [False])[0]),None)
+        if catch_mon and not catch_synch_bool:
+            catch_pokemon()
+            continue
+        elif catch_mon and catch_synch_bool:
             if on_screen["catch_synch"][0]:
-                catch_pokemom()
+                catch_pokemon()
+                continue
+        
+        current_pokemon = next((pokemon for pokemon in dinamic_pokemon if on_screen.get(pokemon, [False])[0]),None)
+        if current_pokemon == None:
+            time.sleep(0.1)
+            sweep_screen()
+            current_pokemon = next((pokemon for pokemon in dinamic_pokemon if on_screen.get(pokemon, [False])[0]),None)
+
+        move_num = move_map[current_pokemon]
 
         if on_screen["battle"][0]:
             walking = False
-
-            # if catch_sync_bool is true and images["catch_sync"] is true
-            # check if pokemon in catch_mons list is present in on_screen
-            # if all 3 are true, catch synch
-            
-            # if battle_elite image is True and battle_elite_bool True, battle elite
-            # if battle_elite image is True and battle_elite_bool is False, run from elite
+            if not use_sweeper_bool:
+                while on_screen["battle"][0]:
+                    print(f"cuurent pokemon is: {current_pokemon}")
+                    print(f"dimanic pokemons list: {dinamic_pokemon}")
+                    battle(move_num)
+                    sweep_screen()
+            else:
+                sweeper_battle()
         else:
             walking = True
-        # for name, (is_present, active) in on_screen.items():
-        #     if not is_present:
-        #         continue  # skip if nothing found
-
-        #     if active:
-        #         isolate_func(func_map[name])
-        #     elif name == "catch_synch":
-        #         continue  # skip this one explicitly
-        #     else:
-        #         isolate_func(run)
-        # time.sleep(0.2)
+        time.sleep(0.2)
 
 def click(region):
     x = region[0] + region[2] // 2

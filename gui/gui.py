@@ -12,24 +12,13 @@ def main(page: ft.Page):
     icon_path = os.path.abspath("../win_assets/logo.ico")
     page.window.icon = icon_path
     page.title = "PokeNexus BOT"
-    page.window.width = 800
+    page.window.width = 1000
     page.window.height = 800
-    page.padding = 10
+    page.padding = 30
     page.window.center()
     page.vertical_alignment = ft.MainAxisAlignment.START
     page.update()
 
-
-    # ---------------- LEFT COLUMN (fixed buttons) ----------------
-    left_column = ft.Column(
-        controls=[
-            ft.ElevatedButton("Global Start", on_click=lambda e: print("Global Start clicked")),
-            ft.ElevatedButton("Global Stop", on_click=lambda e: print("Global Stop clicked")),
-            ft.ElevatedButton("Global Reset", on_click=lambda e: print("Global Reset clicked")),
-        ],
-        spacing=10,
-        width=150,
-    )
 
     # ---------------- RIGHT COLUMN (dynamic content) ----------------
     right_column = ft.Column(spacing=10, expand=2)
@@ -204,8 +193,8 @@ def main(page: ft.Page):
             "break_time": random.randint(3, 5) * 60,
             "run_time": random.randint(25, 55) * 60,
         }
-        grinding.append_pokemon(pokemon_list)
-        grinding.reload_images()
+        # grinding.append_pokemon(pokemon_list)
+        # grinding.reload_images()
         grinding.start_grinding()
 
         # Run timer_cycle in its own thread
@@ -240,10 +229,9 @@ def main(page: ft.Page):
 
     # Separators
     tabs_separator = ft.Container(height=1, width=None, bgcolor=ft.Colors.GREY_300)
-    separator = ft.Container(width=1, height=None, bgcolor=ft.Colors.GREY_300)
 
     # Main layout
-    main_row = ft.Row(controls=[left_column, separator, right_column], spacing=20, expand=True)
+    main_row = ft.Row(controls=[right_column], spacing=20, expand=True)
     page.add(tabs, tabs_separator, main_row)
 
     # Initialize first tab content
